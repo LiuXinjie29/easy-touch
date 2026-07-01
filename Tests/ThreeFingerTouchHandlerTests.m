@@ -52,11 +52,22 @@ static void testNonThreeFingerCountsDoNotPostShortcut(void) {
     ETAssert(sender.optionSCount == 0, @"Only exactly three fingers should post Option+S.");
 }
 
+static void testContinuesListeningToTrackpadWhenApplicationEntersBackground(void) {
+    ETSpyShortcutSender *sender = [[ETSpyShortcutSender alloc] init];
+    ETThreeFingerTouchHandler *handler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:sender];
+
+    [handler applicationDidEnterBackground];
+    [handler updateWithTouchingFingerCount:3];
+
+    ETAssert(sender.optionSCount == 1, @"Application should continue listening to the trackpad when it enters the background.");
+}
+
 int main(void) {
     @autoreleasepool {
         testThreeFingerTouchPostsOptionSOnce();
         testThreeFingerTouchCanTriggerAgainAfterFingerCountChanges();
         testNonThreeFingerCountsDoNotPostShortcut();
+        testContinuesListeningToTrackpadWhenApplicationEntersBackground();
         puts("ThreeFingerTouchHandlerTests passed");
     }
     return 0;

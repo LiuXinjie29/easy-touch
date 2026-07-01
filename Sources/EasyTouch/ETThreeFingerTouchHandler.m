@@ -33,4 +33,8 @@
     self.threeFingerTouchActive = NO;
 }
 
+- (void)applicationDidEnterBackground {
+    [self reset];
+}
+
 @end

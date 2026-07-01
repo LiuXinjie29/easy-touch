@@ -5,6 +5,7 @@
 
 @interface ETAppDelegate : NSObject <NSApplicationDelegate>
 @property (nonatomic, strong) NSWindow *window;
+@property (nonatomic, strong) ETThreeFingerTouchHandler *touchHandler;
 @end
 
 @interface ETTouchCaptureView : NSView
@@ -19,6 +20,7 @@
     ETKeyboardShortcutSender *shortcutSender = [[ETKeyboardShortcutSender alloc] init];
     ETThreeFingerTouchHandler *touchHandler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:shortcutSender];
     ETTouchCaptureView *contentView = [[ETTouchCaptureView alloc] initWithTouchHandler:touchHandler];
+    self.touchHandler = touchHandler;
 
     self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 520, 300)
                                              styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable
@@ -31,6 +33,11 @@
 
     [NSApp activateIgnoringOtherApps:YES];
     [self requestAccessibilityPermissionIfNeeded];
+}
+
+- (void)applicationDidResignActive:(NSNotification *)notification {
+    (void)notification;
+    [self.touchHandler applicationDidEnterBackground];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
