@@ -35,7 +35,7 @@ static const CGKeyCode ETKeyCodeS = 1;
 
 @interface ETKeyboardShortcutSender ()
 @property (nonatomic, strong) id<ETKeyboardEventPosting> eventPoster;
-@property (nonatomic, strong) ETShortcutBinding *shortcutBinding;
+@property (nonatomic, strong, readwrite) ETShortcutBinding *shortcutBinding;
 @end
 
 @implementation ETKeyboardShortcutSender

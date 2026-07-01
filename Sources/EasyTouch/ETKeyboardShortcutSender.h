@@ -11,6 +11,8 @@
 
 @interface ETKeyboardShortcutSender : NSObject <ETShortcutSending>
 
+@property (nonatomic, strong, readonly) ETShortcutBinding *shortcutBinding;
+
 - (instancetype)initWithEventPoster:(id<ETKeyboardEventPosting>)eventPoster NS_DESIGNATED_INITIALIZER;
 - (instancetype)init;
 - (void)updateShortcutBinding:(ETShortcutBinding *)shortcutBinding;

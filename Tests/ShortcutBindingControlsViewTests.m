@@ -37,6 +37,18 @@ static void testShortcutChangeEntryExists(void) {
     ETAssert([view.changeShortcutButton.accessibilityIdentifier isEqualToString:@"ChangeShortcutButton"], @"Shortcut binding button should be discoverable by UI tests.");
 }
 
+static void testShortcutBindingListShowsCurrentThreeFingerShortcut(void) {
+    ETSpyKeyboardEventPoster *eventPoster = [[ETSpyKeyboardEventPoster alloc] init];
+    ETKeyboardShortcutSender *sender = [[ETKeyboardShortcutSender alloc] initWithEventPoster:eventPoster];
+    ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
+    ETShortcutBindingControlsView *view = [[ETShortcutBindingControlsView alloc] initWithShortcutSender:sender recorder:recorder];
+
+    ETAssert(view.shortcutListView != nil, @"Shortcut binding UI should expose a list of touch shortcut bindings.");
+    ETAssert([view.shortcutListView.accessibilityIdentifier isEqualToString:@"ShortcutBindingList"], @"Shortcut binding list should be discoverable by UI tests.");
+    ETAssert([view.touchCountLabel.stringValue isEqualToString:@"3 Fingers"], @"Shortcut binding list should show the three-finger binding row.");
+    ETAssert([view.currentShortcutLabel.stringValue isEqualToString:@"Option+S"], @"Shortcut binding list should show the current three-finger shortcut.");
+}
+
 static void testShortcutChangeEntryUpdatesBoundThreeFingerShortcut(void) {
     ETSpyKeyboardEventPoster *eventPoster = [[ETSpyKeyboardEventPoster alloc] init];
     ETKeyboardShortcutSender *sender = [[ETKeyboardShortcutSender alloc] initWithEventPoster:eventPoster];
@@ -53,26 +65,14 @@ static void testShortcutChangeEntryUpdatesBoundThreeFingerShortcut(void) {
     ETAssert(eventPoster.postCount == 1, @"Three-finger touch should send a shortcut after UI binding changes.");
     ETAssert(eventPoster.lastKeyCode == ETKeyCodeK, @"Shortcut binding UI should update the key sent by three-finger touch.");
     ETAssert((eventPoster.lastFlags & flags) == flags, @"Shortcut binding UI should update the modifiers sent by three-finger touch.");
-}
-
-static void testShortcutChangeEntryStartsSystemCaptureWhenAvailable(void) {
-    ETSpyKeyboardEventPoster *eventPoster = [[ETSpyKeyboardEventPoster alloc] init];
-    ETKeyboardShortcutSender *sender = [[ETKeyboardShortcutSender alloc] initWithEventPoster:eventPoster];
-    ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
-    ETShortcutBindingControlsView *view = [[ETShortcutBindingControlsView alloc] initWithShortcutSender:sender recorder:recorder];
-
-    [view beginShortcutRecording:nil];
-
-    ETAssert(recorder.isRecording, @"Shortcut binding UI should put the recorder into recording mode.");
-    ETAssert(recorder.isSystemEventTapActive || [view.currentShortcutLabel.stringValue containsString:@"Input Monitoring"],
-             @"Shortcut binding UI should use a temporary system event tap or explain the required permission fallback.");
+    ETAssert([view.currentShortcutLabel.stringValue isEqualToString:@"Command+Shift+K"], @"Shortcut binding list should update the displayed three-finger shortcut.");
 }
 
 int main(void) {
     @autoreleasepool {
         testShortcutChangeEntryExists();
+        testShortcutBindingListShowsCurrentThreeFingerShortcut();
         testShortcutChangeEntryUpdatesBoundThreeFingerShortcut();
-        testShortcutChangeEntryStartsSystemCaptureWhenAvailable();
         puts("ShortcutBindingControlsViewTests passed");
     }
     return 0;

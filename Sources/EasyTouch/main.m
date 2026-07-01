@@ -129,7 +129,7 @@
     self.titleLabel.alignment = NSTextAlignmentCenter;
     self.titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
-    self.statusLabel = [NSTextField labelWithString:@"Touch the trackpad with three fingers to send Option+S."];
+    self.statusLabel = [NSTextField labelWithString:@"Touch the trackpad with three fingers to send the bound shortcut."];
     self.statusLabel.font = [NSFont systemFontOfSize:15];
     self.statusLabel.textColor = NSColor.secondaryLabelColor;
     self.statusLabel.alignment = NSTextAlignmentCenter;
@@ -163,7 +163,7 @@
     [self.touchHandler updateWithTouchingFingerCount:touchingCount];
 
     if (touchingCount == 3) {
-        self.statusLabel.stringValue = @"Sent Option+S.";
+        self.statusLabel.stringValue = @"Sent three-finger shortcut.";
     } else {
         self.statusLabel.stringValue = [NSString stringWithFormat:@"%lu finger(s) touching.", touchingCount];
     }
