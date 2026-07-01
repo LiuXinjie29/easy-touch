@@ -1,20 +1,24 @@
 #import "ETKeyboardShortcutSender.h"
-#import <ApplicationServices/ApplicationServices.h>
 
 static const CGKeyCode ETKeyCodeS = 1;
 
-@implementation ETKeyboardShortcutSender
+@interface ETCGKeyboardEventPoster : NSObject <ETKeyboardEventPosting>
+@end
 
-- (void)sendOptionS {
+@implementation ETCGKeyboardEventPoster
+
+- (void)postKeyPressWithKeyCode:(CGKeyCode)keyCode flags:(CGEventFlags)flags {
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-    CGEventRef keyDown = CGEventCreateKeyboardEvent(source, ETKeyCodeS, true);
-    CGEventRef keyUp = CGEventCreateKeyboardEvent(source, ETKeyCodeS, false);
+    CGEventRef keyDown = CGEventCreateKeyboardEvent(source, keyCode, true);
+    CGEventRef keyUp = CGEventCreateKeyboardEvent(source, keyCode, false);
 
-    CGEventSetFlags(keyDown, kCGEventFlagMaskAlternate);
-    CGEventSetFlags(keyUp, kCGEventFlagMaskAlternate);
+    if (keyDown != NULL && keyUp != NULL) {
+        CGEventSetFlags(keyDown, flags);
+        CGEventSetFlags(keyUp, flags);
 
-    CGEventPost(kCGHIDEventTap, keyDown);
-    CGEventPost(kCGHIDEventTap, keyUp);
+        CGEventPost(kCGHIDEventTap, keyDown);
+        CGEventPost(kCGHIDEventTap, keyUp);
+    }
 
     if (keyDown != NULL) {
         CFRelease(keyDown);
@@ -25,6 +29,30 @@ static const CGKeyCode ETKeyCodeS = 1;
     if (source != NULL) {
         CFRelease(source);
     }
+}
+
+@end
+
+@interface ETKeyboardShortcutSender ()
+@property (nonatomic, strong) id<ETKeyboardEventPosting> eventPoster;
+@end
+
+@implementation ETKeyboardShortcutSender
+
+- (instancetype)init {
+    return [self initWithEventPoster:[[ETCGKeyboardEventPoster alloc] init]];
+}
+
+- (instancetype)initWithEventPoster:(id<ETKeyboardEventPosting>)eventPoster {
+    self = [super init];
+    if (self != nil) {
+        _eventPoster = eventPoster;
+    }
+    return self;
+}
+
+- (void)sendOptionS {
+    [self.eventPoster postKeyPressWithKeyCode:ETKeyCodeS flags:kCGEventFlagMaskAlternate];
 }
 
 @end

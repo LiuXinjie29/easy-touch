@@ -26,12 +26,17 @@ $(CONTENTS_DIR)/Info.plist: Sources/EasyTouch/Info.plist
 	@mkdir -p $(CONTENTS_DIR) $(RESOURCES_DIR)
 	cp $< $@
 
-test: $(TEST_DIR)/ThreeFingerTouchHandlerTests
+test: $(TEST_DIR)/ThreeFingerTouchHandlerTests $(TEST_DIR)/KeyboardShortcutSenderTests
 	$(TEST_DIR)/ThreeFingerTouchHandlerTests
+	$(TEST_DIR)/KeyboardShortcutSenderTests
 
 $(TEST_DIR)/ThreeFingerTouchHandlerTests: Tests/ThreeFingerTouchHandlerTests.m Sources/EasyTouch/ETThreeFingerTouchHandler.m
 	@mkdir -p $(TEST_DIR)
 	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS)
+
+$(TEST_DIR)/KeyboardShortcutSenderTests: Tests/KeyboardShortcutSenderTests.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETThreeFingerTouchHandler.m
+	@mkdir -p $(TEST_DIR)
+	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS) -framework ApplicationServices
 
 clean:
 	rm -rf $(BUILD_DIR)
