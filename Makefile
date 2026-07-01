@@ -12,6 +12,7 @@ APP_FRAMEWORKS := -framework Cocoa -framework ApplicationServices
 TEST_FRAMEWORKS := -framework Foundation
 DEV_SIGN_IDENTITY := $(shell security find-identity -v -p codesigning | awk -F\" '/EasyTouch Local Development Root/ { print $$2; exit }')
 SIGN_IDENTITY ?= $(if $(DEV_SIGN_IDENTITY),$(DEV_SIGN_IDENTITY),-)
+APP_SOURCES := Sources/EasyTouch/main.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETGlobalTrackpadTouchMonitor.m
 
 .PHONY: all clean test
 
@@ -20,7 +21,7 @@ all: $(APP_DIR)
 $(APP_DIR): $(MACOS_DIR)/$(APP_NAME) $(CONTENTS_DIR)/Info.plist
 	codesign --force --sign "$(SIGN_IDENTITY)" $(APP_DIR)
 
-$(MACOS_DIR)/$(APP_NAME): Sources/EasyTouch/main.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETKeyboardShortcutSender.m
+$(MACOS_DIR)/$(APP_NAME): $(APP_SOURCES)
 	@mkdir -p $(MACOS_DIR)
 	$(CC) $(OBJCFLAGS) $^ -o $@ $(APP_FRAMEWORKS)
 
@@ -28,15 +29,20 @@ $(CONTENTS_DIR)/Info.plist: Sources/EasyTouch/Info.plist
 	@mkdir -p $(CONTENTS_DIR) $(RESOURCES_DIR)
 	cp $< $@
 
-test: $(TEST_DIR)/ThreeFingerTouchHandlerTests $(TEST_DIR)/KeyboardShortcutSenderTests
+test: $(TEST_DIR)/ThreeFingerTouchHandlerTests $(TEST_DIR)/KeyboardShortcutSenderTests $(TEST_DIR)/GlobalTrackpadTouchMonitorTests
 	$(TEST_DIR)/ThreeFingerTouchHandlerTests
 	$(TEST_DIR)/KeyboardShortcutSenderTests
+	$(TEST_DIR)/GlobalTrackpadTouchMonitorTests
 
 $(TEST_DIR)/ThreeFingerTouchHandlerTests: Tests/ThreeFingerTouchHandlerTests.m Sources/EasyTouch/ETThreeFingerTouchHandler.m
 	@mkdir -p $(TEST_DIR)
 	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS)
 
 $(TEST_DIR)/KeyboardShortcutSenderTests: Tests/KeyboardShortcutSenderTests.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETThreeFingerTouchHandler.m
+	@mkdir -p $(TEST_DIR)
+	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS) -framework ApplicationServices
+
+$(TEST_DIR)/GlobalTrackpadTouchMonitorTests: Tests/GlobalTrackpadTouchMonitorTests.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETGlobalTrackpadTouchMonitor.m
 	@mkdir -p $(TEST_DIR)
 	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS) -framework ApplicationServices
 

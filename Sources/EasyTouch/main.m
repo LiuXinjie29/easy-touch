@@ -1,15 +1,18 @@
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
+#import "ETGlobalTrackpadTouchMonitor.h"
 #import "ETKeyboardShortcutSender.h"
 #import "ETThreeFingerTouchHandler.h"
 
 @interface ETAppDelegate : NSObject <NSApplicationDelegate>
 @property (nonatomic, strong) NSWindow *window;
 @property (nonatomic, strong) ETThreeFingerTouchHandler *touchHandler;
+@property (nonatomic, strong) ETGlobalTrackpadTouchMonitor *trackpadTouchMonitor;
 @end
 
 @interface ETTouchCaptureView : NSView
 - (instancetype)initWithTouchHandler:(ETThreeFingerTouchHandler *)touchHandler;
+- (void)setLocalTouchHandlingEnabled:(BOOL)localTouchHandlingEnabled;
 @end
 
 @implementation ETAppDelegate
@@ -19,8 +22,10 @@
 
     ETKeyboardShortcutSender *shortcutSender = [[ETKeyboardShortcutSender alloc] init];
     ETThreeFingerTouchHandler *touchHandler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:shortcutSender];
+    ETGlobalTrackpadTouchMonitor *trackpadTouchMonitor = [[ETGlobalTrackpadTouchMonitor alloc] initWithTouchHandler:touchHandler];
     ETTouchCaptureView *contentView = [[ETTouchCaptureView alloc] initWithTouchHandler:touchHandler];
     self.touchHandler = touchHandler;
+    self.trackpadTouchMonitor = trackpadTouchMonitor;
 
     self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 520, 300)
                                              styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable
@@ -33,6 +38,7 @@
 
     [NSApp activateIgnoringOtherApps:YES];
     [self requestAccessibilityPermissionIfNeeded];
+    [contentView setLocalTouchHandlingEnabled:![self.trackpadTouchMonitor start]];
 }
 
 - (void)applicationDidResignActive:(NSNotification *)notification {
@@ -56,6 +62,7 @@
 @property (nonatomic, strong) ETThreeFingerTouchHandler *touchHandler;
 @property (nonatomic, strong) NSTextField *titleLabel;
 @property (nonatomic, strong) NSTextField *statusLabel;
+@property (nonatomic, assign) BOOL localTouchHandlingEnabled;
 @end
 
 @implementation ETTouchCaptureView
@@ -64,6 +71,7 @@
     self = [super initWithFrame:NSZeroRect];
     if (self != nil) {
         _touchHandler = touchHandler;
+        _localTouchHandlingEnabled = YES;
         self.allowedTouchTypes = NSTouchTypeMaskIndirect;
         self.wantsRestingTouches = YES;
         self.wantsLayer = YES;
@@ -96,8 +104,15 @@
 
 - (void)touchesCancelledWithEvent:(NSEvent *)event {
     (void)event;
+    if (!self.localTouchHandlingEnabled) {
+        return;
+    }
     [self.touchHandler reset];
     self.statusLabel.stringValue = @"Touch cancelled.";
+}
+
+- (void)setLocalTouchHandlingEnabled:(BOOL)localTouchHandlingEnabled {
+    _localTouchHandlingEnabled = localTouchHandlingEnabled;
 }
 
 - (void)setupLabels {
@@ -126,6 +141,10 @@
 }
 
 - (void)updateTouchCountFromEvent:(NSEvent *)event {
+    if (!self.localTouchHandlingEnabled) {
+        return;
+    }
+
     NSUInteger touchingCount = [event touchesMatchingPhase:NSTouchPhaseTouching inView:self].count;
     [self.touchHandler updateWithTouchingFingerCount:touchingCount];
 
