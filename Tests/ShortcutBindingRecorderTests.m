@@ -23,6 +23,32 @@ static void testRecordingConsumesScreenshotShortcutBeforeOtherAppsCanUseIt(void)
     ETAssert((recorder.recordedBinding.flags & screenshotFlags) == screenshotFlags, @"Binding recorder should save the screenshot modifiers.");
 }
 
+static void testRecordingCompletionReceivesCapturedShortcut(void) {
+    ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
+    __block ETShortcutBinding *completedBinding = nil;
+    CGEventFlags flags = kCGEventFlagMaskAlternate | kCGEventFlagMaskCommand;
+
+    [recorder beginRecordingWithCompletion:^(ETShortcutBinding *binding) {
+        completedBinding = binding;
+    }];
+    BOOL consumed = [recorder handleKeyDownWithKeyCode:ETKeyCodeS flags:flags];
+
+    ETAssert(consumed, @"Binding recorder should consume the captured shortcut.");
+    ETAssert(completedBinding != nil, @"Binding recorder should call completion after capturing a shortcut.");
+    ETAssert(completedBinding.keyCode == ETKeyCodeS, @"Binding recorder completion should receive the captured key.");
+    ETAssert((completedBinding.flags & flags) == flags, @"Binding recorder completion should receive the captured modifiers.");
+}
+
+static void testCancelRecordingStopsSystemEventTapState(void) {
+    ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
+
+    [recorder beginRecording];
+    [recorder cancelRecording];
+
+    ETAssert(!recorder.isRecording, @"Cancelling should stop recording.");
+    ETAssert(!recorder.isSystemEventTapActive, @"Cancelling should stop the temporary system event tap.");
+}
+
 static void testShortcutIsNotConsumedWhenRecorderIsInactive(void) {
     ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
 
@@ -35,6 +61,8 @@ static void testShortcutIsNotConsumedWhenRecorderIsInactive(void) {
 int main(void) {
     @autoreleasepool {
         testRecordingConsumesScreenshotShortcutBeforeOtherAppsCanUseIt();
+        testRecordingCompletionReceivesCapturedShortcut();
+        testCancelRecordingStopsSystemEventTapState();
         testShortcutIsNotConsumedWhenRecorderIsInactive();
         puts("ShortcutBindingRecorderTests passed");
     }

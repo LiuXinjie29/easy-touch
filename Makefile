@@ -12,7 +12,7 @@ APP_FRAMEWORKS := -framework Cocoa -framework ApplicationServices
 TEST_FRAMEWORKS := -framework Foundation
 DEV_SIGN_IDENTITY := $(shell security find-identity -v -p codesigning | awk -F\" '/EasyTouch Local Development Root/ { print $$2; exit }')
 SIGN_IDENTITY ?= $(if $(DEV_SIGN_IDENTITY),$(DEV_SIGN_IDENTITY),-)
-APP_SOURCES := Sources/EasyTouch/main.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETGlobalTrackpadTouchMonitor.m Sources/EasyTouch/ETShortcutBindingRecorder.m
+APP_SOURCES := Sources/EasyTouch/main.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETGlobalTrackpadTouchMonitor.m Sources/EasyTouch/ETShortcutBindingRecorder.m Sources/EasyTouch/ETShortcutBindingControlsView.m
 
 .PHONY: all clean test
 
@@ -29,10 +29,11 @@ $(CONTENTS_DIR)/Info.plist: Sources/EasyTouch/Info.plist
 	@mkdir -p $(CONTENTS_DIR) $(RESOURCES_DIR)
 	cp $< $@
 
-test: $(TEST_DIR)/ThreeFingerTouchHandlerTests $(TEST_DIR)/KeyboardShortcutSenderTests $(TEST_DIR)/ShortcutBindingRecorderTests
+test: $(TEST_DIR)/ThreeFingerTouchHandlerTests $(TEST_DIR)/KeyboardShortcutSenderTests $(TEST_DIR)/ShortcutBindingRecorderTests $(TEST_DIR)/ShortcutBindingControlsViewTests
 	$(TEST_DIR)/ThreeFingerTouchHandlerTests
 	$(TEST_DIR)/KeyboardShortcutSenderTests
 	$(TEST_DIR)/ShortcutBindingRecorderTests
+	$(TEST_DIR)/ShortcutBindingControlsViewTests
 
 $(TEST_DIR)/ThreeFingerTouchHandlerTests: Tests/ThreeFingerTouchHandlerTests.m Sources/EasyTouch/ETThreeFingerTouchHandler.m
 	@mkdir -p $(TEST_DIR)
@@ -45,6 +46,10 @@ $(TEST_DIR)/KeyboardShortcutSenderTests: Tests/KeyboardShortcutSenderTests.m Sou
 $(TEST_DIR)/ShortcutBindingRecorderTests: Tests/ShortcutBindingRecorderTests.m Sources/EasyTouch/ETShortcutBindingRecorder.m
 	@mkdir -p $(TEST_DIR)
 	$(CC) $(OBJCFLAGS) $^ -o $@ $(TEST_FRAMEWORKS) -framework ApplicationServices
+
+$(TEST_DIR)/ShortcutBindingControlsViewTests: Tests/ShortcutBindingControlsViewTests.m Sources/EasyTouch/ETShortcutBindingControlsView.m Sources/EasyTouch/ETKeyboardShortcutSender.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETShortcutBindingRecorder.m
+	@mkdir -p $(TEST_DIR)
+	$(CC) $(OBJCFLAGS) $^ -o $@ $(APP_FRAMEWORKS)
 
 clean:
 	rm -rf $(BUILD_DIR)

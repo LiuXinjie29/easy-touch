@@ -2,6 +2,7 @@
 #import <ApplicationServices/ApplicationServices.h>
 #import "ETGlobalTrackpadTouchMonitor.h"
 #import "ETKeyboardShortcutSender.h"
+#import "ETShortcutBindingControlsView.h"
 #import "ETThreeFingerTouchHandler.h"
 
 @interface ETAppDelegate : NSObject <NSApplicationDelegate>
@@ -11,7 +12,9 @@
 @end
 
 @interface ETTouchCaptureView : NSView
-- (instancetype)initWithTouchHandler:(ETThreeFingerTouchHandler *)touchHandler;
+- (instancetype)initWithTouchHandler:(ETThreeFingerTouchHandler *)touchHandler
+                       shortcutSender:(ETKeyboardShortcutSender *)shortcutSender
+                             recorder:(ETShortcutBindingRecorder *)recorder;
 - (void)setLocalTouchHandlingEnabled:(BOOL)localTouchHandlingEnabled;
 @end
 
@@ -21,9 +24,10 @@
     (void)notification;
 
     ETKeyboardShortcutSender *shortcutSender = [[ETKeyboardShortcutSender alloc] init];
+    ETShortcutBindingRecorder *shortcutRecorder = [[ETShortcutBindingRecorder alloc] init];
     ETThreeFingerTouchHandler *touchHandler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:shortcutSender];
     ETGlobalTrackpadTouchMonitor *trackpadTouchMonitor = [[ETGlobalTrackpadTouchMonitor alloc] initWithTouchHandler:touchHandler];
-    ETTouchCaptureView *contentView = [[ETTouchCaptureView alloc] initWithTouchHandler:touchHandler];
+    ETTouchCaptureView *contentView = [[ETTouchCaptureView alloc] initWithTouchHandler:touchHandler shortcutSender:shortcutSender recorder:shortcutRecorder];
     self.touchHandler = touchHandler;
     self.trackpadTouchMonitor = trackpadTouchMonitor;
 
@@ -62,16 +66,20 @@
 @property (nonatomic, strong) ETThreeFingerTouchHandler *touchHandler;
 @property (nonatomic, strong) NSTextField *titleLabel;
 @property (nonatomic, strong) NSTextField *statusLabel;
+@property (nonatomic, strong) ETShortcutBindingControlsView *shortcutBindingControlsView;
 @property (nonatomic, assign) BOOL localTouchHandlingEnabled;
 @end
 
 @implementation ETTouchCaptureView
 
-- (instancetype)initWithTouchHandler:(ETThreeFingerTouchHandler *)touchHandler {
+- (instancetype)initWithTouchHandler:(ETThreeFingerTouchHandler *)touchHandler
+                       shortcutSender:(ETKeyboardShortcutSender *)shortcutSender
+                             recorder:(ETShortcutBindingRecorder *)recorder {
     self = [super initWithFrame:NSZeroRect];
     if (self != nil) {
         _touchHandler = touchHandler;
         _localTouchHandlingEnabled = YES;
+        _shortcutBindingControlsView = [[ETShortcutBindingControlsView alloc] initWithShortcutSender:shortcutSender recorder:recorder];
         self.allowedTouchTypes = NSTouchTypeMaskIndirect;
         self.wantsRestingTouches = YES;
         self.wantsLayer = YES;
@@ -129,6 +137,8 @@
 
     [self addSubview:self.titleLabel];
     [self addSubview:self.statusLabel];
+    [self addSubview:self.shortcutBindingControlsView];
+    self.shortcutBindingControlsView.translatesAutoresizingMaskIntoConstraints = NO;
 
     [NSLayoutConstraint activateConstraints:@[
         [self.titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
@@ -137,6 +147,10 @@
         [self.statusLabel.topAnchor constraintEqualToAnchor:self.titleLabel.bottomAnchor constant:12],
         [self.statusLabel.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.leadingAnchor constant:24],
         [self.statusLabel.trailingAnchor constraintLessThanOrEqualToAnchor:self.trailingAnchor constant:-24],
+        [self.shortcutBindingControlsView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
+        [self.shortcutBindingControlsView.topAnchor constraintEqualToAnchor:self.statusLabel.bottomAnchor constant:22],
+        [self.shortcutBindingControlsView.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.leadingAnchor constant:24],
+        [self.shortcutBindingControlsView.trailingAnchor constraintLessThanOrEqualToAnchor:self.trailingAnchor constant:-24],
     ]];
 }
 

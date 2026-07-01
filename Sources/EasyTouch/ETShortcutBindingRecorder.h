@@ -3,6 +3,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class ETShortcutBinding;
+
+typedef void (^ETShortcutBindingRecorderCompletion)(ETShortcutBinding *binding);
+
 @interface ETShortcutBinding : NSObject
 
 @property (nonatomic, assign, readonly) CGKeyCode keyCode;
@@ -16,9 +20,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ETShortcutBindingRecorder : NSObject
 
 @property (nonatomic, assign, readonly, getter=isRecording) BOOL recording;
+@property (nonatomic, assign, readonly, getter=isSystemEventTapActive) BOOL systemEventTapActive;
 @property (nonatomic, strong, readonly, nullable) ETShortcutBinding *recordedBinding;
 
-- (void)beginRecording;
+- (BOOL)beginRecording;
+- (BOOL)beginRecordingWithCompletion:(nullable ETShortcutBindingRecorderCompletion)completion;
 - (void)cancelRecording;
 - (BOOL)handleKeyDownWithKeyCode:(CGKeyCode)keyCode flags:(CGEventFlags)flags;
 
