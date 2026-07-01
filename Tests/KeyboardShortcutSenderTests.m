@@ -1,6 +1,9 @@
 #import <Foundation/Foundation.h>
 #import "ETKeyboardShortcutSender.h"
+#import "ETShortcutBindingRecorder.h"
 #import "ETThreeFingerTouchHandler.h"
+
+static const CGKeyCode ETKeyCodeK = 40;
 
 @interface ETSpyKeyboardEventPoster : NSObject <ETKeyboardEventPosting>
 @property (nonatomic, assign) NSUInteger postCount;
@@ -22,21 +25,27 @@ static void ETAssert(BOOL condition, NSString *message) {
     }
 }
 
-static void testThreeFingerTouchPostsKeyboardInput(void) {
+static void testRecordedKeyboardInputBindsToThreeFingerTouch(void) {
+    ETShortcutBindingRecorder *recorder = [[ETShortcutBindingRecorder alloc] init];
     ETSpyKeyboardEventPoster *eventPoster = [[ETSpyKeyboardEventPoster alloc] init];
     ETKeyboardShortcutSender *sender = [[ETKeyboardShortcutSender alloc] initWithEventPoster:eventPoster];
     ETThreeFingerTouchHandler *handler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:sender];
+    CGEventFlags flags = kCGEventFlagMaskCommand | kCGEventFlagMaskShift;
 
+    [recorder beginRecording];
+    BOOL consumed = [recorder handleKeyDownWithKeyCode:ETKeyCodeK flags:flags];
+    [sender updateShortcutBinding:recorder.recordedBinding];
     [handler updateWithTouchingFingerCount:3];
 
-    ETAssert(eventPoster.postCount == 1, @"Three-finger touch should request keyboard input.");
-    ETAssert(eventPoster.lastKeyCode == 1, @"Three-finger touch should input the S key.");
-    ETAssert((eventPoster.lastFlags & kCGEventFlagMaskAlternate) == kCGEventFlagMaskAlternate, @"Three-finger touch should input with the Option modifier.");
+    ETAssert(consumed, @"Recording should consume the typed shortcut before binding it.");
+    ETAssert(eventPoster.postCount == 1, @"Three-finger touch should send the recorded keyboard shortcut.");
+    ETAssert(eventPoster.lastKeyCode == ETKeyCodeK, @"Three-finger touch should send the recorded key.");
+    ETAssert((eventPoster.lastFlags & flags) == flags, @"Three-finger touch should send the recorded modifiers.");
 }
 
 int main(void) {
     @autoreleasepool {
-        testThreeFingerTouchPostsKeyboardInput();
+        testRecordedKeyboardInputBindsToThreeFingerTouch();
         puts("KeyboardShortcutSenderTests passed");
     }
     return 0;

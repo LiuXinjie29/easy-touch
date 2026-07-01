@@ -26,7 +26,7 @@
     }
 
     self.threeFingerTouchActive = YES;
-    [self.shortcutSender sendOptionS];
+    [self.shortcutSender sendShortcut];
 }
 
 - (void)reset {

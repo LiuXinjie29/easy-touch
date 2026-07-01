@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <ApplicationServices/ApplicationServices.h>
+#import "ETShortcutBindingRecorder.h"
 #import "ETShortcutSending.h"
 
 @protocol ETKeyboardEventPosting <NSObject>
@@ -12,5 +13,6 @@
 
 - (instancetype)initWithEventPoster:(id<ETKeyboardEventPosting>)eventPoster NS_DESIGNATED_INITIALIZER;
 - (instancetype)init;
+- (void)updateShortcutBinding:(ETShortcutBinding *)shortcutBinding;
 
 @end

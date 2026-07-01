@@ -35,6 +35,7 @@ static const CGKeyCode ETKeyCodeS = 1;
 
 @interface ETKeyboardShortcutSender ()
 @property (nonatomic, strong) id<ETKeyboardEventPosting> eventPoster;
+@property (nonatomic, strong) ETShortcutBinding *shortcutBinding;
 @end
 
 @implementation ETKeyboardShortcutSender
@@ -47,12 +48,17 @@ static const CGKeyCode ETKeyCodeS = 1;
     self = [super init];
     if (self != nil) {
         _eventPoster = eventPoster;
+        _shortcutBinding = [[ETShortcutBinding alloc] initWithKeyCode:ETKeyCodeS flags:kCGEventFlagMaskAlternate];
     }
     return self;
 }
 
-- (void)sendOptionS {
-    [self.eventPoster postKeyPressWithKeyCode:ETKeyCodeS flags:kCGEventFlagMaskAlternate];
+- (void)updateShortcutBinding:(ETShortcutBinding *)shortcutBinding {
+    self.shortcutBinding = shortcutBinding;
+}
+
+- (void)sendShortcut {
+    [self.eventPoster postKeyPressWithKeyCode:self.shortcutBinding.keyCode flags:self.shortcutBinding.flags];
 }
 
 @end

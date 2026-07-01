@@ -2,6 +2,6 @@
 
 @protocol ETShortcutSending <NSObject>
 
-- (void)sendOptionS;
+- (void)sendShortcut;
 
 @end

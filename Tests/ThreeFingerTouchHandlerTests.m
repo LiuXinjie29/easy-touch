@@ -2,12 +2,12 @@
 #import "ETThreeFingerTouchHandler.h"
 
 @interface ETSpyShortcutSender : NSObject <ETShortcutSending>
-@property (nonatomic, assign) NSUInteger optionSCount;
+@property (nonatomic, assign) NSUInteger shortcutCount;
 @end
 
 @implementation ETSpyShortcutSender
-- (void)sendOptionS {
-    self.optionSCount += 1;
+- (void)sendShortcut {
+    self.shortcutCount += 1;
 }
 @end
 
@@ -17,7 +17,7 @@ static void ETAssert(BOOL condition, NSString *message) {
     }
 }
 
-static void testThreeFingerTouchPostsOptionSOnce(void) {
+static void testThreeFingerTouchSendsShortcutOnce(void) {
     ETSpyShortcutSender *sender = [[ETSpyShortcutSender alloc] init];
     ETThreeFingerTouchHandler *handler = [[ETThreeFingerTouchHandler alloc] initWithShortcutSender:sender];
 
@@ -25,7 +25,7 @@ static void testThreeFingerTouchPostsOptionSOnce(void) {
     [handler updateWithTouchingFingerCount:3];
     [handler updateWithTouchingFingerCount:3];
 
-    ETAssert(sender.optionSCount == 1, @"Three-finger touch should post Option+S once while held.");
+    ETAssert(sender.shortcutCount == 1, @"Three-finger touch should send the bound shortcut once while held.");
 }
 
 static void testThreeFingerTouchCanTriggerAgainAfterFingerCountChanges(void) {
@@ -36,7 +36,7 @@ static void testThreeFingerTouchCanTriggerAgainAfterFingerCountChanges(void) {
     [handler updateWithTouchingFingerCount:2];
     [handler updateWithTouchingFingerCount:3];
 
-    ETAssert(sender.optionSCount == 2, @"Three-finger touch should trigger again after the count changes.");
+    ETAssert(sender.shortcutCount == 2, @"Three-finger touch should trigger again after the count changes.");
 }
 
 static void testNonThreeFingerCountsDoNotPostShortcut(void) {
@@ -49,7 +49,7 @@ static void testNonThreeFingerCountsDoNotPostShortcut(void) {
     [handler updateWithTouchingFingerCount:4];
     [handler updateWithTouchingFingerCount:5];
 
-    ETAssert(sender.optionSCount == 0, @"Only exactly three fingers should post Option+S.");
+    ETAssert(sender.shortcutCount == 0, @"Only exactly three fingers should send the bound shortcut.");
 }
 
 static void testContinuesListeningToTrackpadWhenApplicationEntersBackground(void) {
@@ -59,12 +59,12 @@ static void testContinuesListeningToTrackpadWhenApplicationEntersBackground(void
     [handler applicationDidEnterBackground];
     [handler updateWithTouchingFingerCount:3];
 
-    ETAssert(sender.optionSCount == 1, @"Application should continue listening to the trackpad when it enters the background.");
+    ETAssert(sender.shortcutCount == 1, @"Application should continue listening to the trackpad when it enters the background.");
 }
 
 int main(void) {
     @autoreleasepool {
-        testThreeFingerTouchPostsOptionSOnce();
+        testThreeFingerTouchSendsShortcutOnce();
         testThreeFingerTouchCanTriggerAgainAfterFingerCountChanges();
         testNonThreeFingerCountsDoNotPostShortcut();
         testContinuesListeningToTrackpadWhenApplicationEntersBackground();
