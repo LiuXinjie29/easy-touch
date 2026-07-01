@@ -10,13 +10,15 @@ CC := clang
 OBJCFLAGS := -fobjc-arc -Wall -Wextra -Werror -I Sources/EasyTouch
 APP_FRAMEWORKS := -framework Cocoa -framework ApplicationServices
 TEST_FRAMEWORKS := -framework Foundation
+DEV_SIGN_IDENTITY := $(shell security find-identity -v -p codesigning | awk -F\" '/EasyTouch Local Development Root/ { print $$2; exit }')
+SIGN_IDENTITY ?= $(if $(DEV_SIGN_IDENTITY),$(DEV_SIGN_IDENTITY),-)
 
 .PHONY: all clean test
 
 all: $(APP_DIR)
 
 $(APP_DIR): $(MACOS_DIR)/$(APP_NAME) $(CONTENTS_DIR)/Info.plist
-	codesign --force --sign - $(APP_DIR)
+	codesign --force --sign "$(SIGN_IDENTITY)" $(APP_DIR)
 
 $(MACOS_DIR)/$(APP_NAME): Sources/EasyTouch/main.m Sources/EasyTouch/ETThreeFingerTouchHandler.m Sources/EasyTouch/ETKeyboardShortcutSender.m
 	@mkdir -p $(MACOS_DIR)
