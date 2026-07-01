@@ -160,12 +160,12 @@
     }
 
     NSUInteger touchingCount = [event touchesMatchingPhase:NSTouchPhaseTouching inView:self].count;
-    [self.touchHandler updateWithTouchingFingerCount:touchingCount];
+    BOOL sentShortcut = [self.touchHandler updateWithTouchingFingerCount:touchingCount];
 
-    if (touchingCount == 3) {
-        self.statusLabel.stringValue = @"Sent three-finger shortcut.";
+    if (sentShortcut) {
+        self.statusLabel.stringValue = [NSString stringWithFormat:@"Sent %lu-finger shortcut.", (unsigned long)touchingCount];
     } else {
-        self.statusLabel.stringValue = [NSString stringWithFormat:@"%lu finger(s) touching.", touchingCount];
+        self.statusLabel.stringValue = [NSString stringWithFormat:@"%lu finger(s) touching.", (unsigned long)touchingCount];
     }
 }
 

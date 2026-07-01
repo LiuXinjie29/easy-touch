@@ -6,7 +6,7 @@
 - (instancetype)initWithShortcutSender:(id<ETShortcutSending>)shortcutSender NS_DESIGNATED_INITIALIZER;
 - (instancetype)init NS_UNAVAILABLE;
 
-- (void)updateWithTouchingFingerCount:(NSUInteger)touchingFingerCount;
+- (BOOL)updateWithTouchingFingerCount:(NSUInteger)touchingFingerCount;
 - (void)applicationDidEnterBackground;
 - (void)reset;
 

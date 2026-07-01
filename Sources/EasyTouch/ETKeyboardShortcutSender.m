@@ -35,7 +35,8 @@ static const CGKeyCode ETKeyCodeS = 1;
 
 @interface ETKeyboardShortcutSender ()
 @property (nonatomic, strong) id<ETKeyboardEventPosting> eventPoster;
-@property (nonatomic, strong, readwrite) ETShortcutBinding *shortcutBinding;
+@property (nonatomic, strong, readwrite, nullable) ETShortcutBinding *shortcutBinding;
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, ETShortcutBinding *> *shortcutBindingsByFingerCount;
 @end
 
 @implementation ETKeyboardShortcutSender
@@ -49,16 +50,45 @@ static const CGKeyCode ETKeyCodeS = 1;
     if (self != nil) {
         _eventPoster = eventPoster;
         _shortcutBinding = [[ETShortcutBinding alloc] initWithKeyCode:ETKeyCodeS flags:kCGEventFlagMaskAlternate];
+        _shortcutBindingsByFingerCount = [@{@3: _shortcutBinding} mutableCopy];
     }
     return self;
 }
 
 - (void)updateShortcutBinding:(ETShortcutBinding *)shortcutBinding {
-    self.shortcutBinding = shortcutBinding;
+    [self updateShortcutBinding:shortcutBinding forFingerCount:3];
+}
+
+- (void)updateShortcutBinding:(ETShortcutBinding *)shortcutBinding forFingerCount:(NSUInteger)fingerCount {
+    self.shortcutBindingsByFingerCount[@(fingerCount)] = shortcutBinding;
+    if (fingerCount == 3) {
+        self.shortcutBinding = shortcutBinding;
+    }
+}
+
+- (void)removeShortcutBindingForFingerCount:(NSUInteger)fingerCount {
+    [self.shortcutBindingsByFingerCount removeObjectForKey:@(fingerCount)];
+    if (fingerCount == 3) {
+        self.shortcutBinding = nil;
+    }
+}
+
+- (nullable ETShortcutBinding *)shortcutBindingForFingerCount:(NSUInteger)fingerCount {
+    return self.shortcutBindingsByFingerCount[@(fingerCount)];
 }
 
 - (void)sendShortcut {
-    [self.eventPoster postKeyPressWithKeyCode:self.shortcutBinding.keyCode flags:self.shortcutBinding.flags];
+    [self sendShortcutForFingerCount:3];
+}
+
+- (BOOL)sendShortcutForFingerCount:(NSUInteger)fingerCount {
+    ETShortcutBinding *binding = [self shortcutBindingForFingerCount:fingerCount];
+    if (binding == nil) {
+        return NO;
+    }
+
+    [self.eventPoster postKeyPressWithKeyCode:binding.keyCode flags:binding.flags];
+    return YES;
 }
 
 @end

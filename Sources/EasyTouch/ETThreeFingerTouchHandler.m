@@ -2,7 +2,7 @@
 
 @interface ETThreeFingerTouchHandler ()
 @property (nonatomic, strong) id<ETShortcutSending> shortcutSender;
-@property (nonatomic, assign) BOOL threeFingerTouchActive;
+@property (nonatomic, assign) NSUInteger activeTouchingFingerCount;
 @end
 
 @implementation ETThreeFingerTouchHandler
@@ -15,22 +15,22 @@
     return self;
 }
 
-- (void)updateWithTouchingFingerCount:(NSUInteger)touchingFingerCount {
-    if (touchingFingerCount != 3) {
-        self.threeFingerTouchActive = NO;
-        return;
+- (BOOL)updateWithTouchingFingerCount:(NSUInteger)touchingFingerCount {
+    if (touchingFingerCount == 0) {
+        self.activeTouchingFingerCount = 0;
+        return NO;
     }
 
-    if (self.threeFingerTouchActive) {
-        return;
+    if (self.activeTouchingFingerCount == touchingFingerCount) {
+        return NO;
     }
 
-    self.threeFingerTouchActive = YES;
-    [self.shortcutSender sendShortcut];
+    self.activeTouchingFingerCount = touchingFingerCount;
+    return [self.shortcutSender sendShortcutForFingerCount:touchingFingerCount];
 }
 
 - (void)reset {
-    self.threeFingerTouchActive = NO;
+    self.activeTouchingFingerCount = 0;
 }
 
 - (void)applicationDidEnterBackground {
