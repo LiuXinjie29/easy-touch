@@ -164,6 +164,7 @@ static void testShortcutChangeEntryUpdatesBoundThreeFingerShortcut(void) {
     [view beginShortcutRecording:nil];
     BOOL consumed = [view handleShortcutKeyDownWithKeyCode:ETKeyCodeK flags:flags];
     [handler updateWithTouchingFingerCount:3];
+    [handler updateWithTouchingFingerCount:0];
 
     ETAssert(consumed, @"Shortcut binding UI should consume the recorded shortcut.");
     ETAssert(eventPoster.postCount == 1, @"Three-finger touch should send a shortcut after UI binding changes.");

@@ -9,5 +9,6 @@
 - (BOOL)start;
 - (void)stop;
 - (void)multitouchDeviceDidUpdateTouchingFingerCount:(NSUInteger)touchingFingerCount;
+- (void)multitouchDeviceDidUpdateTouchingFingerCount:(NSUInteger)touchingFingerCount timestamp:(NSTimeInterval)timestamp;
 
 @end

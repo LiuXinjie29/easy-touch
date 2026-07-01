@@ -36,6 +36,7 @@ static void testRecordedKeyboardInputBindsToThreeFingerTouch(void) {
     BOOL consumed = [recorder handleKeyDownWithKeyCode:ETKeyCodeK flags:flags];
     [sender updateShortcutBinding:recorder.recordedBinding];
     [handler updateWithTouchingFingerCount:3];
+    [handler updateWithTouchingFingerCount:0];
 
     ETAssert(consumed, @"Recording should consume the typed shortcut before binding it.");
     ETAssert(eventPoster.postCount == 1, @"Three-finger touch should send the recorded keyboard shortcut.");

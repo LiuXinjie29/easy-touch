@@ -159,11 +159,19 @@
         return;
     }
 
-    NSUInteger touchingCount = [event touchesMatchingPhase:NSTouchPhaseTouching inView:self].count;
-    BOOL sentShortcut = [self.touchHandler updateWithTouchingFingerCount:touchingCount];
+    NSSet<NSTouch *> *touches = [event touchesMatchingPhase:NSTouchPhaseTouching inView:self];
+    NSMutableArray<ETTouchPoint *> *touchPoints = [NSMutableArray arrayWithCapacity:touches.count];
+    for (NSTouch *touch in touches) {
+        ETTouchPoint *touchPoint = [[ETTouchPoint alloc] initWithNormalizedPosition:touch.normalizedPosition];
+        [touchPoints addObject:touchPoint];
+    }
+
+    NSUInteger touchingCount = touches.count;
+    ETTouchFrame *touchFrame = [[ETTouchFrame alloc] initWithFingerCount:touchingCount timestamp:event.timestamp touchPoints:touchPoints];
+    BOOL sentShortcut = [self.touchHandler updateWithTouchFrame:touchFrame];
 
     if (sentShortcut) {
-        self.statusLabel.stringValue = [NSString stringWithFormat:@"Sent %lu-finger shortcut.", (unsigned long)touchingCount];
+        self.statusLabel.stringValue = @"Sent shortcut.";
     } else {
         self.statusLabel.stringValue = [NSString stringWithFormat:@"%lu finger(s) touching.", (unsigned long)touchingCount];
     }

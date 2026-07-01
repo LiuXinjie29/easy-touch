@@ -10,16 +10,28 @@ typedef void (*ETMTDeviceStopFunction)(ETMTDeviceRef device);
 
 static __weak ETGlobalTrackpadTouchMonitor *ETActiveGlobalTrackpadTouchMonitor;
 
+@interface ETGlobalTrackpadTouchMonitor (Callback)
+- (void)multitouchDeviceDidUpdateWithTouchFrame:(ETTouchFrame *)touchFrame;
+@end
+
+static ETTouchFrame *ETGlobalTrackpadTouchFrameFromOpaqueTouches(void *touches, NSUInteger touchCount, NSTimeInterval timestamp) {
+    // MultitouchSupport's touch record layout is private and is not described by
+    // the local SDK or this codebase. Keep the global path count-only until that
+    // ABI is verified on supported macOS versions and hardware.
+    (void)touches;
+    return [[ETTouchFrame alloc] initWithFingerCount:touchCount timestamp:timestamp touchPoints:@[]];
+}
+
 static int ETGlobalTrackpadContactFrameCallback(int device, void *touches, int touchCount, double timestamp, int frame) {
     (void)device;
-    (void)touches;
-    (void)timestamp;
     (void)frame;
 
     if (touchCount < 0) {
         touchCount = 0;
     }
-    [ETActiveGlobalTrackpadTouchMonitor multitouchDeviceDidUpdateTouchingFingerCount:(NSUInteger)touchCount];
+
+    ETTouchFrame *touchFrame = ETGlobalTrackpadTouchFrameFromOpaqueTouches(touches, (NSUInteger)touchCount, timestamp);
+    [ETActiveGlobalTrackpadTouchMonitor multitouchDeviceDidUpdateWithTouchFrame:touchFrame];
     return 0;
 }
 
@@ -119,6 +131,14 @@ static int ETGlobalTrackpadContactFrameCallback(int device, void *touches, int t
 
 - (void)multitouchDeviceDidUpdateTouchingFingerCount:(NSUInteger)touchingFingerCount {
     [self.touchHandler updateWithTouchingFingerCount:touchingFingerCount];
+}
+
+- (void)multitouchDeviceDidUpdateTouchingFingerCount:(NSUInteger)touchingFingerCount timestamp:(NSTimeInterval)timestamp {
+    [self.touchHandler updateWithTouchingFingerCount:touchingFingerCount timestamp:timestamp];
+}
+
+- (void)multitouchDeviceDidUpdateWithTouchFrame:(ETTouchFrame *)touchFrame {
+    [self.touchHandler updateWithTouchFrame:touchFrame];
 }
 
 @end
